@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheda Personalizzata - Gym</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: #f5f5f5;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Menù laterale */
+        .side-menu {
+            width: 250px;
+            background-color: #1e3a8a;
+            color: white;
+            position: fixed;
+            height: 100%;
+            padding-top: 20px;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);
+            left: 0;
+            top: 0;
+        }
+
+        .side-menu a {
+            display: block;
+            padding: 15px;
+            text-decoration: none;
+            color: white;
+            font-size: 1.2rem;
+            margin: 10px 0;
+            transition: background-color 0.3s;
+        }
+
+        .side-menu a:hover {
+            background-color: #2563eb;
+        }
+
+        header {
+            background: linear-gradient(to right, #1e3a8a, #2563eb);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .content {
+            margin-left: 230px;
+            width: 100%;
+        }
+
+        .profile-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 800px;
+            margin-top: 20px;
+        }
+
+        .profile-card h2 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #1e3a8a;
+            color: white;
+        }
+
+        .clear-button {
+            background-color: #d9534f;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .clear-button:hover {
+            background-color: #c9302c;
+        }
+        footer {
+            background: #1e3a8a;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            width: 100%;
+            position: relative;
+            bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="side-menu">
+        <a href="homepage.html">Homepage</a>
+        <a href="scheda.html">La mia Scheda</a>
+        <a href="esercizi.html">Esercizi Disponibili</a>
+        <a href="profilo.html">Il mio Profilo</a>
+        <a href="login.html" id="logout">Logout</a>
+    </div>
+
+    <div class="content">
+        <header>
+            <h1>La tua Scheda Personalizzata</h1>
+        </header>
+
+        <div class="profile-card">
+            <h2>Esercizi Aggiunti</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Esercizio</th>
+                        <th>Giorno</th>
+                        <th>Serie</th>
+                    </tr>
+                </thead>
+                <tbody id="savedExercisesTable"></tbody>
+            </table>
+
+            <button class="clear-button" id="clearExercises">Svuota Scheda</button>
+        </div>
+
+        <footer>
+            <p>© 2025 Gym App | <a href="#">Privacy Policy</a> | <a href="#">Contattaci</a></p>
+        </footer>
+
+        <script>
+            // Funzione per caricare gli esercizi dalla scheda personalizzata
+            function displaySavedExercises() {
+                
+                fetch(`/getUserWorkouts`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const exerciseList = document.getElementById('savedExercisesTable');
+                        
+                        if (data.success && data.workouts.length > 0) {
+                            exerciseList.innerHTML = (exercise => {
+                                return `
+                                    <td>
+                                        <tr>${exercise.esercizio_id}</tr>  <!-- Inserisci il nome dell'esercizio se necessario -->
+                                        <tr>${exercise.giorno}</tr>
+                                        <tr>${exercise.serie} serie</tr>
+                                    </td>
+                                `;
+                            }).join('');
+                        } else {
+                            exerciseList.innerHTML = '<tr><td colspan="3">Non hai ancora aggiunto esercizi.</td></tr>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Errore durante il recupero degli esercizi:", error);
+                    });
+            }
+        
+            // Carica gli esercizi salvati quando la pagina è pronta
+            window.onload = function() {
+                displaySavedExercises();
+            };
+        
+            // Gestisci il bottone "Svuota Scheda"
+            document.getElementById('clearExercises').addEventListener('click', function() {
+                const username = "nome_utente";  // Sostituisci con il nome dell'utente loggato
+                
+                fetch('/clearUserWorkouts', {
+                    method: 'POST',
+                    body: JSON.stringify({ username }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Scheda svuotata con successo!');
+                        displaySavedExercises();  // Ricarica la tabella vuota
+                    } else {
+                        alert('Errore nel svuotamento della scheda');
+                    }
+                })
+                .catch(error => {
+                    console.error("Errore durante la cancellazione della scheda:", error);
+                });
+            });
+        </script>
+    </div>
+</body>
+</html>

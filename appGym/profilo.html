@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il mio Profilo - Gym</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Resetta le impostazioni di base per un design più pulito */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Menù laterale */
+        .side-menu {
+            width: 250px;
+            background-color: #1e3a8a;
+            color: white;
+            position: fixed;
+            height: 100%;
+            padding-top: 20px;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);
+            left: 0;
+            top: 0;
+        }
+
+        .side-menu a {
+            display: block;
+            padding: 15px;
+            text-decoration: none;
+            color: white;
+            font-size: 1.2rem;
+            margin: 10px 0;
+            transition: background-color 0.3s;
+        }
+
+        .side-menu a:hover {
+            background-color: #2563eb;
+        }
+
+        /* Contenuto principale */
+        .content {
+            margin-left: 250px; /* Spostiamo il contenuto a destra del menù laterale */
+            padding: 20px;
+            width: 100%;
+            overflow-y: auto;
+            flex-grow: 1; /* Permette di occupare lo spazio rimanente */
+        }
+
+        header {
+            background: linear-gradient(to right, #1e3a8a, #2563eb);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2rem;
+        }
+
+        /* Profilo Card */
+        .profile-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            text-align: center;
+            width: 100%;
+            margin-top: 40px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+        }
+
+        .profile-card h2 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .profile-card p {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        .profile-card .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            text-decoration: none;
+            color: white;
+            background: #f44336;
+            border-radius: 8px;
+            margin: 10px;
+        }
+
+        .profile-card .btn:hover {
+            background-color: #e53935;
+        }
+
+        .input-field {
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 1rem;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        .input-file {
+            margin: 10px 0;
+        }
+
+        footer {
+            background: #1e3a8a;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+
+        footer a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- Menù Laterale -->
+<div class="side-menu">
+    <a href="homepage.html">Homepage</a>
+    <a href="scheda.html">La mia Scheda</a>
+    <a href="esercizi.html">Esercizi Disponibili</a>
+    <a href="profilo.html">Il mio Profilo</a>
+    <a href="login.html" id="logout">Logout</a>
+</div>
+
+<!-- Contenuto principale -->
+<div class="content">
+    <!-- Questa sezione si trova in alto -->
+    <header>
+        <h1>Il tuo Profilo</h1>
+        <p>Gestisci le tue informazioni personali e la tua esperienza nel Gym</p>
+    </header>
+
+    <!-- La card del profilo è centrata -->
+    <main>
+        <div class="profile-card">
+            <!-- Modifica del nome utente dinamicamente -->
+            <h2>Benvenuto, <span id="username">Caricamento...</span>!</h2>
+            <p>Questa è la tua pagina personale dove puoi gestire il tuo profilo, visualizzare i tuoi progressi e altro.</p>
+
+            <!-- Sezione per caricare foto profilo -->
+            <div class="input-file">
+                <label for="profile-pic">Carica la tua foto profilo</label>
+                <input type="file" id="profile-pic" class="input-field" disabled>
+            </div>
+
+            <!-- Campi per modificare nome e email -->
+            <div class="input-field">
+                <label for="name">Nome:</label>
+                <input type="text" id="name" class="input-field" placeholder="Inserisci il tuo nome" value="" disabled>
+            </div>
+
+            <div class="input-field">
+                <label for="email">Email:</label>
+                <input type="email" id="email" class="input-field" placeholder="Inserisci la tua email" value="" disabled>
+            </div>
+
+            <!-- Pulsante di modifica e salvataggio -->
+            <button class="btn" id="editProfile">Modifica</button>
+            <button class="btn" id="saveProfile" style="display:none;">Salva le modifiche</button>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2025 Gym App | <a href="#">Privacy Policy</a> | <a href="#">Contattaci</a></p>
+    </footer>
+</div>
+
+<script>
+    // Funzione per ottenere il nome utente dal localStorage
+    const username = localStorage.getItem('username');
+    const userEmail = localStorage.getItem('email');
+    const userPic = localStorage.getItem('profilePic');
+
+    if (username) {
+        // Inseriamo il nome dell'utente nella pagina
+        document.getElementById('username').innerText = username;
+    } else {
+        // Se il nome utente non è disponibile, reindirizziamo alla pagina di login
+        window.location.href = 'login.html';
+    }
+
+    // Logout: eliminare il nome utente dal localStorage e reindirizzare alla pagina di login
+    document.getElementById('logout').addEventListener('click', function(e) {
+        e.preventDefault();  // Evita il comportamento di default (reindirizzamento)
+        localStorage.removeItem('username');
+        window.location.href = 'login.html';
+    });
+
+    // Recupera e mostra le informazioni salvate (nome, email, foto)
+    document.getElementById('name').value = localStorage.getItem('name') || '';
+    document.getElementById('email').value = localStorage.getItem('email') || '';
+
+    if (userPic) {
+        const img = document.createElement('img');
+        img.src = userPic;
+        img.alt = "Foto profilo";
+        img.style.width = '100px';
+        img.style.height = '100px';
+        document.querySelector('.input-file').appendChild(img);
+    }
+
+    // Funzione per abilitare la modifica
+    document.getElementById('editProfile').addEventListener('click', function() {
+        document.getElementById('name').disabled = false;
+        document.getElementById('email').disabled = false;
+        document.getElementById('profile-pic').disabled = false;
+        document.getElementById('editProfile').style.display = 'none';
+        document.getElementById('saveProfile').style.display = 'inline-block';
+    });
+
+    // Salva le modifiche
+    document.getElementById('saveProfile').addEventListener('click', function() {
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const profilePic = document.getElementById('profile-pic').files[0];
+
+        // Salvataggio dei dati nel localStorage (o inviarli al server se necessario)
+        localStorage.setItem('name', name);
+        localStorage.setItem('email', email);
+
+        if (profilePic) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                localStorage.setItem('profilePic', e.target.result);
+                alert('Profilo aggiornato!');
+            };
+            reader.readAsDataURL(profilePic);
+        }
+
+        alert('Le modifiche sono state salvate!');
+        window.location.reload();  // Ricarica la pagina per aggiornare il profilo
+    });
+</script>
+</body>
+</html>

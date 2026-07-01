@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esercizi Disponibili - Gym</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Stile generale */
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+    
+        /* Header fisso */
+        header {
+            background: linear-gradient(to right, #1e3a8a, #2563eb);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 998;
+            transition: margin-left 0.3s ease;
+        }
+    
+        /* Menu laterale */
+        .side-menu {
+            width: 250px;
+            background-color: #1e3a8a;
+            color: white;
+            position: fixed;
+            height: 100%;
+            top: 0;
+            left: -250px;
+            transition: left 0.3s ease;
+            z-index: 999;
+        }
+    
+        .side-menu a {
+            display: block;
+            padding: 15px;
+            text-decoration: none;
+            color: white;
+            font-size: 1.2rem;
+            margin: 10px 0;
+            transition: background-color 0.3s;
+        }
+    
+        .side-menu a:hover {
+            background-color: #2563eb;
+        }
+    
+        /* Bottone hamburger */
+        .hamburger {
+            font-size: 30px;
+            cursor: pointer;
+            color: white;
+            position: fixed;
+            left: 20px;
+            top: 20px;
+            z-index: 1000;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Nasconde il bottone quando il menu è aperto */
+        .hamburger.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+    
+        /* Overlay */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+        }
+    
+        .overlay.show {
+            display: block;
+        }
+    
+        /* Contenuto */
+        .content {
+            flex: 1;
+            padding: 150px;
+            margin-top: 100px;
+            transition: margin-left 0.3s ease;
+            padding-bottom: 80px;
+        }
+    
+        /* Tabella con scroll verticale */
+        .table-container {
+            max-height: 700px;
+            overflow-y: auto;
+            margin: 20px auto;
+            width: 180%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+        }
+    
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+    
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+    
+        table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    
+        table th {
+            background-color: #1e3a8a;
+            color: white;
+        }
+    
+        /* Footer fisso in fondo alla pagina */
+        footer {
+            background: #1e3a8a;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            width: 100%;
+            position: relative;
+            margin-top: auto;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Quando il menu è aperto, il contenuto e il footer si spostano */
+        .menu-open .content, .menu-open footer {
+            margin-left: 250px;
+        }
+    
+        /* Responsività */
+        @media screen and (max-width: 768px) {
+            .side-menu {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hamburger" onclick="toggleMenu()">☰</div>
+
+    <!-- Menu laterale -->
+    <div class="side-menu" id="sideMenu">
+        <a href="homepage.html">Homepage</a>
+        <a href="scheda.html">La mia Scheda</a>
+        <a href="esercizi.html">Esercizi Disponibili</a>
+        <a href="profilo.html">Il mio Profilo</a>
+        <a href="login.html" id="logout">Logout</a>
+    </div>
+
+    <!-- Overlay per oscurare il contenuto quando il menu è aperto -->
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <header>
+        <h1>Esercizi Disponibili</h1>
+    </header>
+
+    <div class="content">
+        <main>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Esercizio</th>
+                            <th>Descrizione</th>
+                            <th>Serie</th>
+                            <th>Giorno</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="savedExercises"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        <p>© 2025 Gym App | <a href="#">Privacy Policy</a> | <a href="#">Contattaci</a></p>
+    </footer>
+
+    <script>
+        // Funzione per aprire e chiudere il menu laterale
+        function toggleMenu() {
+            const sideMenu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('overlay');
+            const hamburger = document.querySelector('.hamburger');
+            const body = document.body;
+
+            if (sideMenu.style.left === '-250px' || sideMenu.style.left === '') {
+                sideMenu.style.left = '0';
+                overlay.classList.add('show');
+                hamburger.classList.add('hide'); // Nasconde l'icona hamburger
+                body.classList.add('menu-open'); // Sposta contenuto e footer
+            } else {
+                sideMenu.style.left = '-250px';
+                overlay.classList.remove('show');
+                hamburger.classList.remove('hide'); // Riappare l'icona hamburger
+                body.classList.remove('menu-open'); // Reset layout
+            }
+        }
+
+        // Funzione per caricare gli esercizi salvati
+        fetch('/getSavedExercises')
+        .then(response => response.json()) 
+        .then(exercises => {
+            const tableBody = document.getElementById("savedExercises");
+            exercises.forEach(exercise => {
+                const row = document.createElement("tr");
+                row.id = `exercise-${exercise.id}`;
+                const nomeCell = document.createElement("td");
+                nomeCell.textContent = exercise.nome; 
+
+                const descrizioneCell = document.createElement("td");
+                descrizioneCell.textContent = exercise.descrizione;
+
+                const serieCell = document.createElement("td");
+                const serieSelect = document.createElement("select");
+                serieSelect.className = "serie-select";
+                for(let i = 1; i <= 10; i++) {
+                    const option = document.createElement("option");
+                    option.value = i;
+                    option.textContent = i + " serie";
+                    serieSelect.appendChild(option);
+                }
+                serieCell.appendChild(serieSelect);
+
+                const giornoCell = document.createElement("td");
+                const giornoSelect = document.createElement("select");
+                giornoSelect.className = "giorno-select";
+                const giorni = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì"];
+                giorni.forEach(giorno => {
+                    const option = document.createElement("option");
+                    option.value = giorno;
+                    option.textContent = giorno;
+                    giornoSelect.appendChild(option);
+                });
+                giornoCell.appendChild(giornoSelect);
+
+                const actionCell = document.createElement("td");
+                const addButton = document.createElement("button");
+                addButton.textContent = "Aggiungi";
+                addButton.className = "add-button";
+                addButton.onclick = () => {
+                    const serie = serieSelect.value;
+                    const giorno = giornoSelect.value;
+                    
+                    fetch('/addExerciseToWorkout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            exercise: exercise.nome,
+                            day: giorno,
+                            sets: serie,
+                            username: localStorage.getItem('username')
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.success) {
+                            alert('Esercizio aggiunto alla scheda!');
+                        } else {
+                            alert('Errore durante il salvataggio: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Errore:', error);
+                        alert('Errore durante il salvataggio');
+                    });
+                };
+                actionCell.appendChild(addButton);
+
+                row.appendChild(nomeCell);
+                row.appendChild(descrizioneCell);
+                row.appendChild(serieCell);
+                row.appendChild(giornoCell);
+                row.appendChild(actionCell);
+                tableBody.appendChild(row);
+            });
+        })
+        .catch(error => console.error("Errore nel caricamento: ", error));
+    </script>
+</body>
+</html>

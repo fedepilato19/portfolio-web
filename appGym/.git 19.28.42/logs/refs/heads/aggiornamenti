@@ -1,0 +1,5 @@
+0000000000000000000000000000000000000000 804c48df3b4a623fe0e73a0f94d48f042714d53f fedepilato19 <federicapilato1@gmail.com> 1739525607 +0100	commit (initial): caricamento progressi codice
+804c48df3b4a623fe0e73a0f94d48f042714d53f 8bc0ea68653dfc249f0cb2a86ae97255f9001835 fedepilato19 <federicapilato1@gmail.com> 1739533522 +0100	commit: aggiornamento pagina esercizi.html con progressi per la visualizzazione degli esercizi presenti nel DB
+8bc0ea68653dfc249f0cb2a86ae97255f9001835 d4f52c7b9c13d1d6c8c39af5fb3c5fad379b9c21 fedepilato19 <federicapilato1@gmail.com> 1739621197 +0100	commit: caricamento progressi pagina esercizi
+d4f52c7b9c13d1d6c8c39af5fb3c5fad379b9c21 e994ab8097a5af6f1415dc265d65a3e75d2304be fedepilato19 <federicapilato1@gmail.com> 1739623175 +0100	commit: caricamento progressi codice esercizi
+e994ab8097a5af6f1415dc265d65a3e75d2304be f293e6d0219889e105446c0749cedb18f6e91c4c fedepilato19 <federicapilato1@gmail.com> 1740137565 +0100	commit: progressi riguardo il caricamento degli esercizi nel database nella tabella piano_workout con i relativi id dei diversi utenti

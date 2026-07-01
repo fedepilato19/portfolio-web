@@ -1,0 +1,17 @@
+# Ignora i file di log
+*.log
+
+# Ignora la cartella node_modules (per un progetto Node.js)
+node_modules/
+
+# Ignora file di configurazione di macOS
+.DS_Store
+
+# Ignora file di configurazione di IDE come Visual Studio Code
+.vscode/
+
+# Ignora file di build
+build/
+
+# Ignora file temporanei creati da editor di testo
+*.swp

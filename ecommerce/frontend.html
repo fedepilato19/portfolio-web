@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecommerce</title>
+    <style>
+        body{
+            font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+            text-align: center;
+        }
+        h1{
+            color: rgb(102, 175, 175);
+            text-align: center;
+        }
+        .form-container {
+            margin-bottom: 20px;
+            padding: 50px;
+        }
+        .form-container input, .form-container select {
+            padding: 8px;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        .form-container button {
+            padding: 8px 12px;
+            background-color: rgb(102, 175, 175);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .form-container button:hover {
+            background-color: rgb(92, 160, 160);
+        }
+        .container button{
+            padding: 8px 12px;
+            background-color: rgb(102, 175, 175);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table tr:hover {
+            background-color: #f5f5f5;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+        th {
+            background-color: rgb(102, 175, 175);
+            color: white;
+        }
+        .image{
+            width: 300;
+            height: 500;
+            align-items: center;
+        }
+        .modifica {
+            background-color:rgb(102, 175, 175);
+            color: white;
+            padding: 5px 10px;
+            cursor: pointer;
+            border: none;
+            margin-right: 10px;
+        }
+        .modifica:hover {
+            background-color: rgb(92, 160, 160);
+        }
+        .elimina {
+            background-color:rgb(102, 175, 175);
+            color: white;
+            padding: 5px 10px;
+            cursor: pointer;
+            border: none;
+        }
+        .elimina:hover {
+            background-color:rgb(92, 160, 160);
+        }
+        .carrello{
+            background-color:rgb(102, 175, 175);
+            color: white;
+            padding: 5px 10px;
+            cursor: pointer;
+            border: none;
+            text-align: center;
+        }
+        .articoloBtn{
+            background-color:rgb(102, 175, 175);
+            color: white;
+            padding: 2px 7px;
+            cursor: pointer;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Articoli dell'ecommerce</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Articolo</th>
+                <th>Prezzo</th>
+                <th>Immagine</th>
+                <th>Descrizione</th>
+                <th>Categoria</th>
+                <th>Quantità</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody id="articoli"></tbody>
+    </table>
+    <script>
+        //carica gli articoli
+        function loadArticles() {
+            fetch('http://localhost:8080/articoli')
+                .then(response => {
+                    if (!response.ok) throw new Error('Errore durante il caricamento degli articoli');
+                    return response.json();
+                })
+                .then(data => {
+                    const articoliElement = document.getElementById('articoli');
+                    articoliElement.innerHTML = '';
+
+                    if (data.length === 0) {
+                        articoliElement.innerHTML = '<tr><td colspan="6">Non ci sono articoli da visualizzare</td></tr>';
+                        return;
+                    }
+
+                    data.forEach(articolo => {
+                        const tr = document.createElement('tr');
+                        tr.id = `articolo-${articolo.id}`; // id univoco per ogni riga
+                        const conta=0;
+                        
+                        tr.innerHTML = `
+                            <td><input id="input-id" type="text" value="${articolo.id}" disabled></td>
+                            <td><input class="input-update" type="text" value="${articolo.nome}" disabled></td>
+                            <td><input class="input-update" type="number" value="${articolo.prezzo}" disabled></td>
+                            <td>
+                                <input class="input-update" type="text" id="url" value="${articolo.url_immagine}" disabled required style="display: none;"> 
+                                <img src="${articolo.url_immagine}" alt="${articolo.nome}" width="100">
+                            </td>
+                            <td><textarea class="input-update" rows="3" disabled>${articolo.descrizione}</textarea></td>
+                            <td><input class="input-update" type="text" value="${articolo.categoria}" disabled></td>
+                            <td><input type="number" name="quantita" value="1" min="1" />
+                                <td>
+                                <button class="modifica" onclick="editArticles(${articolo.id})">✏️</button>
+                                <button class="elimina" onclick="deleteArticles(${articolo.id})">🗑️</button>
+                            </td>
+                            <td>
+                            <button class="carrello" onclick="addToCart(${articolo.id})">🛒 Aggiungi al Carrello</button>
+                            </td>
+                        `;
+                        
+                        articoliElement.appendChild(tr);
+                    });
+                })
+                .catch(error => console.error('Errore:', error));
+        }
+        // Funzione per modificare un articolo
+        function editArticles(id) {
+            const tr = document.getElementById(`articolo-${id}`); // La riga dell'articolo
+            const inputs = tr.querySelectorAll('.input-update'); // Seleziona tutti gli input con la classe .input-update
+            const button = tr.querySelector('.modifica'); // Bottone "Modifica"
+            const urlImmagineInput = tr.querySelector('input[id="url"]'); // L'input per l'URL immagine
+
+            // Se il bottone è modifica, abilito gli input
+            if (button.textContent === "✏️") {
+                inputs.forEach(input => input.disabled = false);  
+                urlImmagineInput.style.display = 'block'; 
+
+                // Cambia il bottone in salva
+                button.textContent = "💾";
+                button.style.backgroundColor = 'rgb(176, 50, 75)'; 
+            } else {
+                // Raccolgo i dati aggiornati
+                const updatedArticle = {
+                    nome: inputs[0].value,
+                    prezzo: parseFloat(inputs[1].value),
+                    descrizione: inputs[2].value,
+                    url_immagine: inputs[3].value, 
+                    categoria: inputs[4].value,
+                };
+
+                // Verifica se il prezzo è valido
+                if (isNaN(updatedArticle.prezzo)) {
+                    alert('Il prezzo deve essere un numero valido');
+                    return;
+                }
+
+                // Invio i dati al server
+                fetch(`http://localhost:8080/articoli/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedArticle)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Errore durante la modifica dell\'articolo');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Articolo aggiornato:', data);
+                    loadArticles();  // Ricarica gli articoli per riflettere le modifiche
+                })
+                .catch(error => {
+                    console.error('Errore durante la modifica dell\'articolo:', error);
+                });
+
+                // Ripristina gli input come disabilitati
+                inputs.forEach(input => input.disabled = true);
+                urlImmagineInput.style.display = 'none'; 
+
+                // Cambia il pulsante di nuovo in "Modifica"
+                button.textContent = "✏️";  
+                button.style.backgroundColor = 'rgb(102, 175, 175)'; // Ripristina il colore originale
+            }
+        }
+        //aggiunge un articolo
+        function addArticles() {
+            const article = document.getElementById('articolo').value;
+            const price = parseFloat(document.getElementById('prezzo').value);
+            const image = document.getElementById('immagine').value;
+            const description = document.getElementById('descrizione').value;
+            const category = document.getElementById('categoria').value;
+
+            const newArticle = { 
+                nome: article, 
+                prezzo: price, 
+                descrizione: description,
+                url_immagine: image, 
+                categoria: category,
+            };
+
+            fetch('http://localhost:8080/articoli', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newArticle),
+            })
+            .then(response => {
+                if (!response.ok) {
+                throw new Error('Errore nel server: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(() => {
+                document.getElementById('articolo').value = '';
+                document.getElementById('prezzo').value = '';
+                document.getElementById('immagine').value = '';
+                document.getElementById('descrizione').value = '';
+                document.getElementById('categoria').value = '';
+                loadArticles(); 
+            })
+            .catch(error => console.error('Errore durante l\'aggiunta dell\'articolo:', error));
+        }
+
+        //cancella un'articolo
+        function deleteArticles(id) {
+            if (confirm('Sei sicuro di voler eliminare questo articolo?')) {
+                fetch(`http://localhost:8080/articoli/${id}`, { method: 'DELETE' })
+                    .then(() => loadArticles())
+                    .catch(error => console.error('Errore:', error));
+            }
+        }
+        //vai al carrello
+        function cart()
+        {
+            window.location.href="carrello.html";
+        }
+
+        
+        function updateCartCount() {
+            fetch('http://localhost:8080/carrello')
+                .then(response => {
+                    if (!response.ok) throw new Error('Errore nel caricamento del carrello');
+                    return response.json();
+                })
+                .then(data => {
+                    // Calcola il numero totale di articoli nel carrello
+                    const totalItems = data.reduce((acc, item) => acc + item.quantita, 0);
+                    document.getElementById('cart-count').textContent = totalItems; // Aggiorna il conteggio
+                })
+                .catch(error => console.error('Errore:', error));
+        }
+
+        
+        function addToCart(id) {
+            const tr = document.getElementById(`articolo-${id}`);
+            const quantitaInput = tr.querySelector('input[name="quantita"]');
+            const quantita = parseInt(quantitaInput.value, 10);
+
+            if (isNaN(quantita) || quantita <= 0) {
+                alert('Errore: Non è possibile aggiungere al carrello una quantità pari o inferiore a zero.');
+                return;
+            }
+
+            fetch('http://localhost:8080/carrello', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ articolo_id: id, quantita: quantita }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        alert(`Errore dal server: ${err.messaggio || 'Errore generico'}`);
+                        throw new Error(err.messaggio || 'Errore generico');
+                    });
+                }
+                return response.json();
+            })
+            .then(() => {
+                alert('Prodotto aggiunto al carrello!');
+                updateCartCount(); // Aggiorna il conteggio dopo l'aggiunta
+            })
+            .catch(error => console.error('Errore:', error));
+        }
+
+        //eventi
+        document.addEventListener('DOMContentLoaded', loadArticles);
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('articoloBtn').addEventListener('click', addArticles);
+        });        
+        // Aggiorna il conteggio al caricamento della pagina
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCartCount();
+        });
+    </script>
+    
+        <div class="form-container">
+            <h1>Aggiungi un articolo</h1>
+            <input id="articolo" type="text" placeholder="Inserisci l'articolo" required />
+            <input id="prezzo" type="text" placeholder="Inserisci il prezzo" required />
+            <input id="descrizione" type="text" placeholder="Inserisci la descrizione" required />
+            <input id="immagine" type="url" placeholder="Inserisci l'immagine" required />
+            <input id="categoria" type="text" placeholder="Inserisci la categoria" required />
+            <button id="articoloBtn">Aggiungi Articolo</button>
+        </div>
+        <div class="container">
+            <button id="carrello" onclick="cart()">Vai al carrello🛒
+            <p id="cart-count">0</p>
+        </button>
+        </div>
+</body>
+</html>
+

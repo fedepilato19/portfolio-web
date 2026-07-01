@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Carrello</title>
+        <style>
+        body{
+            font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+            text-align: center;
+        }
+        h1{
+            color: rgb(102, 175, 175);
+            text-align: center;
+        }
+        .form-container {
+            margin-bottom: 20px;
+            padding: 50px;
+        }
+        .form-container input, .form-container select {
+            padding: 8px;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        .form-container button {
+            padding: 8px 12px;
+            background-color: rgb(102, 175, 175);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .form-container button:hover {
+            background-color: rgb(92, 160, 160);
+        }
+        .container button{
+            padding: 8px 12px;
+            background-color: rgb(102, 175, 175);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table tr:hover {
+            background-color: #f5f5f5;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+        th {
+            background-color: rgb(102, 175, 175);
+            color: white;
+        }
+        </style>
+        <script>
+            //funzione per caricare i prodotti che vogliamo nel carrello
+            function loadCart() {
+                fetch('http://localhost:8080/carrello')
+                .then(response => {
+                if (!response.ok) throw new Error('Errore nel caricamento del carrello');
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(data);  // Log dei dati ricevuti dal server
+                    const carrelloElement = document.getElementById('carrello');
+                    carrelloElement.innerHTML = '';
+
+                    if (data.length === 0) {
+                        carrelloElement.innerHTML = '<tr><td colspan="6">Il carrello è vuoto</td></tr>';
+                        return;
+                    }
+
+                    data.forEach(item => {
+                    console.log(item);  // Log per ogni articolo ricevuto dal server
+
+                    // Verifica che 'prezzo_unitario' sia definito
+                    if (item.prezzo_unitario === undefined || item.prezzo_unitario === null) {
+                        console.error('Prezzo unitario non definito per l\'articolo', item);
+                        return; // Salta questo item se il prezzo_unitario non è definito
+                    }
+
+                    const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${item.articolo_id}</td>
+                            <td>${item.nome}</td>
+                            <td>${parseFloat(item.prezzo_unitario).toFixed(2)}</td>
+                            <td>
+                                <input type="number" min="1" value="${item.quantita}" onchange="updateQuantity(${item.articolo_id}, this.value)" />
+                            </td>
+                            <td>${(parseFloat(item.prezzo_unitario) * item.quantita).toFixed(2)}</td>
+                            <td>
+                            <button onclick="removeFromCart(${item.articolo_id})">🗑️</button>
+                            </td>
+                        `;
+                        carrelloElement.appendChild(tr);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Errore:', error);
+                    });
+            }
+            //funzione per caricare la quantità del prodotto dentro il carrello
+            function updateQuantity(id, quantita) {
+                fetch(`http://localhost:8080/carrello/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quantita: parseInt(quantita) }),
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Errore durante l\'aggiornamento della quantità');
+                    loadCart();
+                })
+                .catch(error => console.error('Errore:', error));
+                if(quantita<1)
+                {
+                    if(confirm('Sei sicuro di voler eliminare questa task?'))
+                        removeFromCart(id);
+                }
+            }
+
+            function removeFromCart(id) {
+            // Rimuove l'articolo dal server
+            fetch(`http://localhost:8080/carrello/${id}`, {
+                method: 'DELETE',
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Errore durante la rimozione dell\'articolo');
+                console.log(`Articolo ${id} rimosso con successo`);
+                loadCart(); // Ricarica il carrello dopo la rimozione
+            })
+            .catch(error => console.error('Errore durante la rimozione:', error));
+            }
+
+            //funzione per ritornare allo shopping
+            function frontend()
+            {
+                window.location.href="frontend.html";
+            }
+            document.addEventListener('DOMContentLoaded', loadCart);
+        </script>
+    </head>
+    <body>
+        <div class="form-container">
+            <button class="button" onclick="frontend()">Torna allo shopping🛍️</button>
+            <h1>Carrello</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Articolo</th>
+                        <th>Prezzo</th>
+                        <th>Quantità</th>
+                        <th>Totale</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody id="carrello"></tbody>
+                </table>
+        </div>
+    </body>
+</html>

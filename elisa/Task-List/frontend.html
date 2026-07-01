@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista delle Tasks</title>
+    <style>
+        body {
+            font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #62937d;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table tr:hover {
+            background-color: #f5f5f5;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+        th {
+            background-color: #62937d;
+            color: white;
+        }
+        .form-container {
+            margin-bottom: 20px;
+        }
+        .form-container input, .form-container select {
+            padding: 8px;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        .form-container button {
+            padding: 8px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+        .modifica {
+            background-color: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            cursor: pointer;
+            border: none;
+            margin-right: 10px;
+        }
+        .modifica:hover {
+            background-color: #45a049;
+        }
+        .elimina {
+            background-color: #f44336;
+            color: white;
+            padding: 5px 10px;
+            cursor: pointer;
+            border: none;
+        }
+        .elimina:hover {
+            background-color: #e57373;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lista delle Tasks</h1>
+
+    <!-- Form per aggiungere una nuova task -->
+    <div class="form-container">
+        <input id="taskTitle" type="text" placeholder="Inserisci il titolo" required />
+        <input id="taskCategory" type="text" placeholder="Inserisci la categoria" required />
+        <input id="taskDate" type="date" required />
+        <button id="addTaskBtn">Aggiungi Task</button>
+    </div>
+    
+    <!-- Form per filtrare le tasks -->
+    <div class="form-container">
+        <select id="filterCategory">
+            <option value="">Tutte le categorie</option>
+        </select>
+        <label>
+            <input type="checkbox" id="showDate" />
+            Mostra solo le task scadute
+        </label>
+        <button id="filterTaskBtn">Filtra</button>
+    </div>
+
+    <!-- Tabella per visualizzare le tasks -->
+    <table>
+        <thead>
+            <tr>
+                <th>Check</th>
+                <th>Nome Task</th>
+                <th>Data di scadenza</th>
+                <th>Categoria</th>
+                <th>Stato</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody id="tasks"></tbody>
+    </table>
+
+    <script>
+        let tasks = []; // Lista delle tasks
+
+
+        // COMMENTO
+        // Funzione per caricare le categorie e le date delle task
+        function loadTasks() {
+            const category = document.getElementById('filterCategory').value;
+            const showDate = document.getElementById('showDate').checked;
+
+            const queryParams = [];
+            if (category) queryParams.push(`categoria=${category}`);
+            if (showDate) queryParams.push('scadute=true');
+
+            const queryString = queryParams.length > 0 ? '?' + queryParams.join('&') : '';
+            fetch(`http://localhost:3000/tasks${queryString}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Errore durante il caricamento delle tasks');
+                    return response.json();
+                })
+                .then(data => {
+                    tasks = data;
+                    renderTasks();
+                })
+                .catch(error => console.error('Errore:', error));
+        }
+
+        // Funzione per visualizzare le tasks e anche le task completate spunta la data del completamento 
+        function renderTasks() {
+            const taskList = document.getElementById('tasks');
+            taskList.innerHTML = '';
+
+            if (tasks.length === 0) {
+                taskList.innerHTML = '<tr><td colspan="5">Non ci sono task da visualizzare</td></tr>';
+                return;
+            }
+
+            tasks.forEach(task => {
+                const tr = document.createElement('tr');
+                const formattedDate = new Date(task.data_scadenza).toLocaleDateString('it-IT'); // Formato italiano
+                const formattedCompletionDate = task.completata_il ? new Date(task.completata_il).toLocaleDateString('it-IT') : 'Non completata';
+
+                // Controllo se la task è completata
+                const isCompleted = task.completata_il !== null;
+                const taskStatus = isCompleted;
+
+                tr.innerHTML = `
+                    <td style="color: ${taskStatus};">
+                        <input type="checkbox" class="completata-checkbox" data-id="${task.id}" ${isCompleted ? 'checked' : ''}>
+                    </td>
+                    <td>${task.titolo}</td>
+                    <td>${formattedDate}</td>
+                    <td>${task.categoria}</td>
+                    <td>${formattedCompletionDate}</td> <!-- Mostra la data di completamento -->
+                    <td>
+                        <button class="modifica" onclick="editTask(${task.id})">Modifica</button>
+                        <button class="elimina" onclick="deleteTask(${task.id})">Elimina</button>
+                    </td>
+                `;
+
+                taskList.appendChild(tr);
+            });
+        }
+        // Funzione per aggiungere una nuova task
+        function addTask() {
+            const title = document.getElementById('taskTitle').value;
+            const category = document.getElementById('taskCategory').value;
+            const date = document.getElementById('taskDate').value;
+
+            const newTask = { titolo: title, categoria: category, data_scadenza: date };
+            fetch('http://localhost:3000/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newTask),
+            })
+                .then(response => response.json())
+                .then(() => {
+                    document.getElementById('taskTitle').value = '';
+                    document.getElementById('taskCategory').value = '';
+                    document.getElementById('taskDate').value = '';
+                    loadTasks();
+                })
+                .catch(error => console.error('Errore durante l\'aggiunta della task:', error));
+        }
+
+        // Funzione per modificare una task
+        function editTask(taskId) {
+            const taskToEdit = tasks.find(task => task.id === taskId);
+            const newTitle = prompt('Modifica il titolo:', taskToEdit.titolo);
+            const newDate = prompt('Modifica la data (YYYY-MM-DD):', taskToEdit.data_scadenza);
+            const newCategory = prompt('Modifica la categoria:', taskToEdit.categoria);
+
+            if (!newTitle || !newDate || !newCategory) {
+                alert('Tutti i campi sono obbligatori!');
+                return;
+            }
+
+            const updatedTask = { titolo: newTitle, data_scadenza: newDate, categoria: newCategory };
+            fetch(`http://localhost:3000/tasks/${taskId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedTask),
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Errore durante la modifica');
+                    loadTasks();
+                })
+                .catch(error => console.error('Errore:', error));
+        }
+
+        // Funzione per eliminare una task
+        function deleteTask(taskId) {
+            if (confirm('Sei sicuro di voler eliminare questa task?')) {
+                fetch(`http://localhost:3000/tasks/${taskId}`, { method: 'DELETE' })
+                    .then(() => loadTasks())
+                    .catch(error => console.error('Errore:', error));
+            }
+        }
+
+        // Funzione per marcare o rimuovere una task come completata
+        function markTaskAsCompleted(taskId, isCompleted) {
+            // Se la checkbox è selezionata, segna la task come completata (imposta la data di completamento)
+            // Se deselezionata, annulla il completamento (imposta NULL)
+            fetch(`http://localhost:3000/tasks/completa/${taskId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    completata_il: isCompleted ? new Date().toISOString().split('T')[0] : null // Aggiunge la data o la rimuove
+                })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Errore nel completare o annullare il completamento della task');
+                loadTasks(); // Ricarica la lista delle tasks per riflettere lo stato aggiornato
+            })
+            .catch(error => console.error('Errore:', error));
+        }
+
+        // Aggiungi l'evento per il click sulla checkbox
+        document.addEventListener('change', (event) => {
+            if (event.target.classList.contains('completata-checkbox')) {
+                const taskId = event.target.getAttribute('data-id');
+                const isCompleted = event.target.checked; // Verifica se la checkbox è selezionata o meno
+                markTaskAsCompleted(taskId, isCompleted); // Segna la task come completata o annulla il completamento
+            }
+        });
+    
+
+        // Carica le categorie dal backend
+        function loadCategories() {
+            fetch('http://localhost:3000/tasks')
+                .then(response => response.json())
+                .then(data => {
+                    const categories = [...new Set(data.map(task => task.categoria))];
+                    const filterCategory = document.getElementById('filterCategory');
+                    categories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category;
+                        option.textContent = category;
+                        filterCategory.appendChild(option);
+                    });
+                });
+        }
+
+        // Eventi
+        document.getElementById('addTaskBtn').addEventListener('click', addTask);
+        document.getElementById('filterTaskBtn').addEventListener('click', loadTasks);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTasks();
+            loadCategories();
+        });
+    </script>
+</body>
+</html>
+

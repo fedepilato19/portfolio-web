@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Articoli Ecommerce</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #table-container {
+            width: 100%;
+            max-width: 1600px; /* Riduci la larghezza massima */
+            margin: 20px auto;
+            overflow-y: auto;
+            overflow-x: auto;
+            
+            
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        th, td {
+            border: 2px solid #ddd;
+            padding: 8px;
+        }
+        td {
+        max-width: 250px; /* Limita la larghezza della cella per evitare che vada fuori dalla pagina */
+        overflow: hidden;
+        word-wrap: break-word; /* Forza l'andata a capo delle parole lunghe */
+        padding: 20px;
+       
+        }
+        
+
+        th {
+            height: 2cm;
+            background-color: rgb(147, 197, 191);
+        }
+
+        tr:hover {
+            background-color: rgb(240, 237, 237);
+        }
+
+        img {
+            width: 130px;
+            display: block;
+            margin: auto;
+        }
+
+        #addBox {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        label {
+            display: block;
+            margin-top: 5px;
+        }
+
+
+        button {
+            background-color: rgb(38, 144, 131);
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-left: 5px;
+          
+          
+        }
+
+        button:hover {
+            background-color: rgb(176, 50, 75);
+        }
+
+        #titolo {
+            text-align: center;
+            color: rgb(51, 124, 116);
+            font-size: 40px;
+            text-shadow: 1px 1px 1px black;
+        }
+        #button-container{
+            display: flex;
+            justify-content: center;
+            flex-direction: row;
+            align-items: center;
+            width:120px;
+            margin-left: 0.40cm;
+            
+        }
+        .actions-button{
+            font-size: 20px;
+        }
+        #input-id{
+            width: 50px;
+            max-width: 200px;
+        }
+        #input-id,.input-update{
+            border: none;
+            background-color: white;
+            overflow-y: auto;
+            overflow-x: auto;
+            
+        }
+        textarea.input-update {
+        font-family: Arial, Helvetica, sans-serif;
+        width: 100%; 
+        overflow-y: auto; 
+        height: 100px;
+        }
+        #quantityInput{
+
+            width: 50px;
+        }
+
+    </style>
+</head>
+<body>
+    <h1 id="titolo">Articoli disponibili nell'Ecommerce</h1>
+
+    <div id="table-container">
+        <table id="articoli-list">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Prezzo (€)</th>
+                    <th>Descrizione</th>
+                    <th>Immagine</th>
+                    <th>Categoria</th>
+                    <th>Azioni</th>
+                    <th>Quantità</th>
+                </tr>
+            </thead>
+            <tbody>
+               
+            </tbody>
+        </table>
+    </div>
+    
+    <h2>Aggiungi un nuovo articolo</h2>
+    <form id="addBox">
+        <div>
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" required>
+        </div>
+        <div>
+            <label for="prezzo">Prezzo:</label>
+            <input type="number" step="0.01" id="prezzo" required>
+        </div>
+        <div>
+            <label for="descrizione">Descrizione:</label>
+            <input type="text" id="descrizione" required>
+        </div>
+        <div>
+            <label for="url_immagine">URL Immagine:</label>
+            <input type="text" id="url_immagine" required>
+        </div>
+        <div>
+            <label for="categoria">Categoria:</label>
+            <input type="text" id="categoria" required>
+        </div>
+        <button type="submit">Aggiungi Articolo</button>
+       
+    </form>
+    <button class="actions-button" onclick="vaiAlCarrello()">Vai al carrello!🛍️</button>
+    <script>
+        
+        function getArticoli() {
+            fetch("http://localhost:8080/articoli")
+                .then(response => response.json())
+                .then(data => {
+                    const articoliList = document.querySelector('#articoli-list tbody');
+                    articoliList.innerHTML = '';
+
+                    data.forEach(articolo => {
+                        articoliList.innerHTML += `
+                            <tr id="articolo-${articolo.id}">
+                                <td><input id="input-id" type="text" value="${articolo.id}" disabled></td>
+                                <td><input class="input-update" type="text" value="${articolo.nome}" disabled></td>
+                                <td><input class="input-update" type="number" value="${articolo.prezzo}" disabled></td>
+                                <td><textarea class="input-update" rows="3" disabled>${articolo.descrizione}</textarea></td>
+                                <td>
+                                <input class="input-update" type="text" id="url" value="${articolo.url_immagine}"disabled required style="display: none;"> 
+                                <img src="${articolo.url_immagine}" alt="${articolo.nome}" width="100">
+                                </td>
+                                
+                                <td><input class="input-update" type="text" value="${articolo.categoria}" disabled></td>
+                                <td><div id="button-container"><button onclick="deleteArticolo(${articolo.id})" class="actions-button">🗑️</button><button class="actions-button" onclick="updateArticolo(${articolo.id})">✏️</button><button class="actions-button" onclick="addToCart(${articolo.id})">🛒</button></div></td>
+                                <td><input id="quantityInput" type="number" name="quantita" value="1" min="1" /></td>
+                                </tr>
+                        `;
+                    });
+                })
+                .catch(error => console.error('Errore nel recupero articoli:', error));
+        }
+
+        //richiesta POST
+        const box = document.getElementById('addBox');
+        box.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const newArticle = {
+                nome: document.getElementById('nome').value,
+                prezzo: parseFloat(document.getElementById('prezzo').value),
+                descrizione: document.getElementById('descrizione').value,
+                url_immagine: document.getElementById('url_immagine').value,
+                categoria: document.getElementById('categoria').value
+            };
+
+            fetch(`http://localhost:8080/articoli`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newArticle),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    getArticoli();
+                    box.reset();
+                })
+                .catch(error => console.error("Errore nell'aggiungere l'articolo:", error));
+        });
+
+
+        //Richiesta PUT
+        function updateArticolo(id)
+        {
+            const tr = document.getElementById(`articolo-${id}`); // La riga dell'articolo
+            const inputs = tr.querySelectorAll('.input-update'); // Seleziona tutti gli input con quell'id 
+            const button = tr.querySelectorAll('.actions-button')[1]; // Bottone "Aggiorna"
+            const urlImmagineInput = tr.querySelector('input[id="url"]'); // L'input per l'URL immagine
+
+            if (button.textContent === "✏️") {
+                // Abilito gli input
+                inputs.forEach(input => input.disabled = false);  
+                urlImmagineInput.style.display = 'block'; 
+
+                // Cambio il bottone in "Salva"
+                button.textContent = "💾";
+                button.style.backgroundColor = 'rgb(176, 50, 75)'; 
+            } else
+            {
+                // Raccolgo i valori aggiornati dagli input
+                const updatedArticle = {
+                    nome: inputs[0].value,
+                    prezzo: parseFloat(inputs[1].value),
+                    descrizione: inputs[2].value,
+                    url_immagine: inputs[3].value, 
+                    categoria: inputs[4].value,
+                };
+
+               
+                fetch(`http://localhost:8080/articoli/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedArticle),
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Errore nell\'aggiornamento dell\'articolo');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Disabilito di nuovo gli input
+                        inputs.forEach(input => input.disabled = true);
+
+                        urlImmagineInput.style.display ='none'; // Rende l'input invisibile
+
+                         
+                        const imgUrl = tr.querySelector('img');// questa riga aggiorna dinamicamente l'immagine
+                        imgUrl.src = updatedArticle.url_immagine; // Cambia l'immagine con il nuovo URL
+
+                        // Cambio il bottone in "Aggiorna"
+                        button.textContent = "✏️";
+                        button.style.backgroundColor = 'rgb(38, 144, 131)';
+                    })
+                    .catch(error => {
+                        console.error("Errore nell'aggiornamento dell'articolo:", error);
+                        alert("C'è stato un errore nell'aggiornamento dell'articolo. Riprova.");
+                    });
+            }   
+        }
+
+        //Richiesta DELETE
+        function deleteArticolo(id) {
+            fetch(`http://localhost:8080/articoli/${id}`, { method: "DELETE" })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById(`articolo-${id}`).remove();
+                })
+                .catch(error => console.error("Errore nell'eliminazione dell'articolo:", error));
+        }
+
+        
+        /*CARRELLO*/
+
+        //Funzione per visualizzare il carrello
+        function vaiAlCarrello() {
+        window.location.href = "carrello.html";
+        }
+
+
+        // Funzione per aggiungere un articolo al carrello
+        function addToCart(articoloId) {
+        // Trova l'articolo specifico nella tabella
+        const tr = document.getElementById(`articolo-${articoloId}`);
+        const quantitaInput = tr.querySelector('input[name="quantita"]');
+        const quantita = quantitaInput ? parseInt(quantitaInput.value) : 1; // imposto un default a 1 se non specificato
+
+        const articolo = {
+            articolo_id: articoloId,
+            quantita: quantita
+        };
+
+        fetch('http://localhost:8080/carrello', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(articolo)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('Articolo aggiunto al carrello!');
+        })
+        .catch(error => console.error('Errore nell\'aggiunta al carrello:', error));
+    }
+
+
+        getArticoli();
+    </script>
+</body>
+</html>

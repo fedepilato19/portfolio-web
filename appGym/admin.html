@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Gestione Utenti</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <style>
+        h1 {
+            color:black;
+        }
+    </style>
+    <div class="admin-container">
+        <h1>Gestione Utenti</h1>
+        <ul id="userList"></ul>
+    </div>
+
+    <script>
+        function approveUser(userId) {
+            console.log('Provo ad approvare l\'utente con ID:', userId); // Debug
+
+            fetch(`/admin/approveUser/${userId}`, {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Risposta dall\'API:', data); // Debug
+                if (data.success) {
+                    loadUsers(); // Ricarica la lista degli utenti
+                }
+            })
+            .catch(error => console.error('Errore:', error));
+        }
+
+        function loadUsers() {
+            fetch('/pending-users')
+                .then(response => response.json())
+                .then(data => {
+                    const userList = document.getElementById('userList');
+                    userList.innerHTML = ''; // Pulisce la lista prima di caricarla
+
+                    data.forEach(user => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `${user.username} - ${user.email}
+                            <button onclick="approveUser(${user.id})">Approva</button>
+                            <button onclick="rejectUser(${user.id})">Rifiuta</button>`;
+                        userList.appendChild(li);
+                    });
+                })
+                .catch(error => console.error('Errore:', error));
+        }
+        function rejectUser(userId) {
+            console.log('Provo a rifiutare l\'utente con ID:', userId); // Debug
+
+            fetch(`/admin/rejectUser/${userId}`, {
+                method: 'POST', // Usa il metodo POST
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Risposta dalla rotta di rifiuto:', data); // Debug
+                alert(data.message); // Mostra il messaggio di risposta
+                if (data.success) {
+                    loadUsers(); // Ricarica la lista degli utenti
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+            });
+        }
+
+        // Carica gli utenti in attesa all'inizio
+        loadUsers();
+    </script>
+</body>
+</html>

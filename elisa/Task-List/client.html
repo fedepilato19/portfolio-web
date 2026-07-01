@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta>
+    <title>Task list</title>
+    <style>
+        .input-update,.status-check{
+            background-color: none;
+            border: none;
+        }
+        #titolo {
+            text-align: left;
+            color: rgb(51, 124, 92);
+            font-size: 40px;
+            text-shadow: 1px 1px 1px black;
+        }
+        table {
+            width: 100%;
+        }
+
+        th, td {
+            border: 2px solid #ddd;
+            padding: 8px;
+        }
+
+        th {
+            
+            background-color: rgb(69, 168, 102);
+        }
+        #filter {
+            padding-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        label {
+            font-size: 14px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .cerca {
+            font-size: 25px;
+            max-width: 400px;
+            background-color: rgb(201, 239, 214);
+        }
+     #addnewCategory{
+        display: flex;
+        flex-direction: row;
+     }
+        
+    </style>
+</head>
+<body>
+
+<h1 id="titolo">Task list</h1>
+<h1 class="cerca">Cerca Task</h1>
+<div id="filter">
+    <form id="filterbox">
+        <select id="categoria">
+            <option value="">Seleziona una categoria</option>
+        </select>
+        <label>Cerca per data</label>
+        <input id="dataFilter" type="date">
+        <input id="data" type ="checkbox">
+        <label>Mostra solo le task scadute</label>
+        <input id="daily" type="checkbox">
+        <label>Mostra le task odierne</label>
+        <button type="submit">🔎</button>
+    </form>
+
+    <h2 class="cerca">Aggiungi una nuova task</h2>
+    <form id="addBox">
+        <div id="addnewCategory">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" required>
+      
+            <label for="data_scadenza">Data Scadenza:</label>
+            <input type="date" id="data_scadenza" required>
+           
+            <select id="categoria_task" onchange="addCategory(this)">
+                
+                <option value="" id="categoria_task">Seleziona o aggiungi una nuova categoria</option>
+
+                <option value="new">aggiungi nuova categoria</option>
+            
+            </select>
+            <input type="text" id="new_category" placeholder="Inserisci nuova categoria" style="display: none;">
+    
+        <button type="submit">Aggiungi Task</button>
+    </div>
+    </form>
+</div>
+<table id="task-list">
+    <thead>
+        <tr>
+            <th>Check</th>
+            <th>Nome</th>
+            <th>Data scadenza</th>
+            <th>Categoria</th>
+            <th>Status</th>
+            <th>Azioni</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+    </tbody>
+</table>
+
+<script>
+    // Funzione per formattare la data nel formato YYYY-MM-DD
+    function formatDate(dateString) {
+        if (!dateString) return ''; 
+
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    }
+    
+    //funzione per visualizzare i task 
+    function renderTasks(tasks) {
+    const taskList = document.querySelector('#task-list tbody');
+    taskList.innerHTML = ''; // Svuota la tabella
+
+    if (tasks.length === 0) {
+        taskList.innerHTML = '<tr><td>Nessun task trovato</td></tr>';
+        return;
+    }
+
+    tasks.forEach(task => {
+        const formattedDeadline = formatDate(task.data_scadenza);
+        const formattedDateComplete=formatDate(task.completata_il);
+
+        taskList.innerHTML += `
+            <tr id="task-${task.id}">
+                <td>
+                    <input type="checkbox" class="check-task" ${formattedDateComplete ? 'checked' : ''} onchange="checkTask(${task.id}, this)">
+                </td>
+                <td><textarea rows="3" disabled class="input-update">${task.titolo}</textarea></td>
+                <td><input type="date" class="input-update" value="${formattedDeadline}" disabled></td>
+                <td><input type="text" class="input-update" value="${task.categoria}" disabled></td>
+               <td>
+                <input type="text" class="status-check" value="${formattedDateComplete ? `Completato il ${formattedDateComplete}` : 'Non completato'}" disabled>
+                </td>
+                <td>
+                    <button class="actions-button" onclick="deleteTask(${task.id})">🗑️</button>
+                    <button class="actions-update" onclick="updateTask(${task.id}, this)">✏️</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+    // Funzione per ottenere e caricare  tutti i task
+    function getTask() {
+        const url = "http://localhost:3000/tasks";
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => renderTasks(data))
+            .catch(error => console.error('Errore nel caricamento dei task:', error));
+    }
+
+    // Funzione per filtrare i task
+    function filterTask() {
+    const category = document.getElementById('categoria').value;
+    const dataSearch = document.getElementById('dataFilter').value; // Data specifica
+    const check = document.getElementById('data').checked;
+    const checkDaily = document.getElementById('daily').checked;
+
+    let params = [];
+
+    if (category) {
+        params.push(`categoria=${category}`); //filtro per categoria
+    }
+    if (check) {
+        params.push('scadute=true'); //filtro per task scadute
+    }
+    if (dataSearch) {
+        params.push(`data=${dataSearch}`); // filtro per  data specifica
+    }
+    if (checkDaily) {
+        const today = new Date().toISOString().split('T')[0];
+        params.push(`data=${today}`); // filtro per task odierne
+    }
+
+    const url = `http://localhost:3000/tasks${params.length ? '?' + params.join('&') : ''}`;
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) throw new Error('Errore nel caricamento dei task');
+            return response.json();
+        })
+        .then(data => renderTasks(data))
+        .catch(error => console.error('Errore nella chiamata API:', error));
+}
+
+
+    // Funzione per caricare le categorie nel filtro
+    function getFilter() {
+    fetch(`http://localhost:3000/tasks`)
+        .then(response => response.json())
+        .then(data => {
+            const categories = [...new Set(data.map(task => task.categoria))];
+
+            // Aggiorna il menu di ricerca
+            const categoriaFilter = document.getElementById('categoria');
+            categoriaFilter.innerHTML = '<option value="">Seleziona una categoria</option>';
+            categories.forEach(category => {
+                if (category) {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    categoriaFilter.appendChild(option);
+                }
+            });
+
+            // Aggiorna il menu di aggiunta
+            const categoriaTask = document.getElementById('categoria_task');
+            categoriaTask.innerHTML = `
+                <option value="">Seleziona o aggiungi una categoria</option>
+                <option value="new">Aggiungi nuova categoria</option>
+            `;
+            categories.forEach(category => {
+                if (category) {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    categoriaTask.appendChild(option);
+                }
+            });
+        })
+        .catch(error => console.error('Errore nel caricamento delle categorie:', error));
+}
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+    getFilter();
+    getTask();
+
+    const filterForm = document.getElementById('filterbox');
+    filterForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        filterTask();
+    });
+    });
+
+    //funzione per gestire l'aggiornamento di una task
+    function updateTask(id,button){
+        const tr = document.getElementById(`task-${id}`); // La riga della task
+            const inputs = tr.querySelectorAll('.input-update'); // Seleziona tutti gli input con quell'id 
+           
+
+            if (button.textContent === "✏️") {
+                // Abilito gli input
+                inputs.forEach(input => input.disabled = false);  
+
+                // Cambio il bottone in "Salva"
+                button.textContent = "💾";
+                
+            } else
+            {
+                // Raccolgo i valori aggiornati dagli input
+                const updatedTask = {
+                    titolo: inputs[0].value,
+                    data_scadenza: inputs[1].value,
+                    categoria: inputs[2].value, 
+                };
+
+               
+                fetch(`http://localhost:3000/tasks/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedTask),
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Errore nell\'aggiornamento della task');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Disabilito di nuovo gli input
+                        inputs.forEach(input => input.disabled = true);
+
+                        // Cambio il bottone in "Aggiorna"
+                        button.textContent = "✏️";
+                        
+                    })
+                    .catch(error => {
+                        console.error("Errore nell'aggiornamento della task:", error);
+                        alert("C'è stato un errore nell'aggiornamento della task. Riprova.");
+                    });
+            }   
+    }
+
+    
+    //funzione per gestire il check
+    function checkTask(id, checkbox) {
+        const isCompleted = checkbox.checked; // Stato del checkbox (true/false)
+        const statusCell = document.querySelector(`#task-${id} .status-check`); // Trova la cella dello status per questa task
+        const completedDate = isCompleted ? new Date().toISOString().split('T')[0] : null;
+        statusCell.value = isCompleted ? `Completato il ${completedDate}` : 'Non completato';
+
+        //richiesta PUT per aggiornare lo stato della task 
+        fetch(`http://localhost:3000/tasks/completa/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                completata_il: completedDate,
+            }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Errore nell\'aggiornamento del completamento della task');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(`Task ${id} aggiornata con completata_il: ${data.completata_il}`);
+        })
+        .catch(error => {
+            console.error('Errore nella chiamata API per il completamento:', error);
+        });
+    }
+
+    //richiesta POST per aggiungere una nuova task
+    const box = document.getElementById('addBox');
+    box.addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    const titolo = document.getElementById('nome').value.trim();
+    const dataScadenza = document.getElementById('data_scadenza').value.trim();
+    const categoriaSelect = document.getElementById('categoria_task');
+    const newCategory = document.getElementById('new_category').value.trim();
+
+    
+     const categoria = categoriaSelect.value === 'new' && newCategory
+        ? newCategory // Usa la nuova categoria
+        : categoriaSelect.value; // Usa la categoria selezionata
+
+    if (!titolo || !dataScadenza || !categoria) {
+        alert('Tutti i campi sono obbligatori.');
+        return;
+    }
+
+    const newTask = {
+        titolo,
+        data_scadenza: dataScadenza,
+        categoria,
+    };
+
+    fetch('http://localhost:3000/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTask),
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Errore nell\'aggiunta della task');
+        return response.json();
+    })
+    .then(data => {
+        console.log('Task aggiunta:', data);
+        getTask(); // Aggiorna la lista
+        getFilter();
+        box.reset(); // Resetta il modulo
+        addCategory(categoriaSelect);
+    })
+    .catch(error => {
+        console.error('Errore nell\'aggiungere la task:', error);
+        alert('Errore durante l\'aggiunta della task.');
+    });
+});
+
+function addCategory(selectCategory){
+    const newCategory= document.getElementById('new_category');
+    if (selectCategory.value === 'new') {
+        newCategory.style.display = 'block'; 
+        newCategory.required = true; 
+    } else {
+        newCategory.style.display = 'none'; 
+        newCategory.required = false; 
+        newCategory.value = ''; 
+    }
+
+}
+// Funzione per eliminare una task
+function deleteTask(id) {
+    if (!confirm('Sei sicuro di voler eliminare questa task?')) return;
+
+    fetch(`http://localhost:3000/tasks/${id}`, {
+        method: 'DELETE',
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Errore nell\'eliminazione della task');
+        const taskRow = document.getElementById(`task-${id}`);
+        if (taskRow) taskRow.remove();
+    })
+    .catch(error => {
+        console.error('Errore nell\'eliminazione della task:', error);
+        alert('Errore durante l\'eliminazione della task.');
+    });
+}
+
+
+</script>
+</body>
+</html>
