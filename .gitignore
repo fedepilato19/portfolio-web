@@ -1,5 +1,0 @@
-# Ignora le pesantissime librerie di Node.js in qualsiasi progetto
-**/node_modules/
-
-# Ignora i file di sistema del Mac
-**/.DS_Store
