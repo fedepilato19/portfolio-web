@@ -1,0 +1,20 @@
+function sensore_velocita_init
+ttInitKernel('prioFP');
+
+ttSetKernelParameter('energyconsumption', 0.010);
+
+nome_s = 'sensore_velocita';
+starttime = 0.0;
+periodo = 1;  % Periodo di aggiornamento dei dati, potrebbe essere modificato
+funzione_s = 'sensore_velocita';
+
+ttCreatePeriodicTask(nome_s, starttime, periodo, funzione_s);
+
+prio = 1;
+ttSetPriority(prio, nome_s);
+
+nome_nh = 'new_sensore_velocita';
+funzione_nh = 'sensore_velocita';
+
+ttCreateHandler(nome_nh, 1, funzione_nh);
+ttAttachNetworkHandler(nome_nh)

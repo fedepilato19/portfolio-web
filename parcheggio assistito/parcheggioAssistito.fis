@@ -1,0 +1,73 @@
+[System]
+Name='parcheggioAssistito'
+Type='mamdani'
+Version=2.0
+NumInputs=3
+NumOutputs=1
+NumRules=27
+AndMethod='min'
+OrMethod='max'
+ImpMethod='min'
+AggMethod='max'
+DefuzzMethod='centroid'
+
+[Input1]
+Name='velocita'
+Range=[0 20]
+NumMFs=3
+MF1='bassa':'trapmf',[0 0 3 7]
+MF2='media':'trapmf',[5 7 13 15]
+MF3='alta':'trapmf',[13 16 20 20]
+
+[Input2]
+Name='distanza'
+Range=[0 200]
+NumMFs=3
+MF1='vicino':'trapmf',[0 0 20 60]
+MF2='medio':'trapmf',[50 80 120 150]
+MF3='lontano':'trapmf',[140 170 200 200]
+
+[Input3]
+Name='angolo'
+Range=[-30 30]
+NumMFs=3
+MF1='piccolo':'trapmf',[-30 -30 -20 -10]
+MF2='medio':'trapmf',[-15 -5 5 15]
+MF3='grande':'trapmf',[10 20 30 30]
+
+[Output1]
+Name='FIT'
+Range=[0 1]
+NumMFs=3
+MF1='bassa':'trimf',[0 0.22 0.43]
+MF2='media':'trimf',[0.3 0.5 0.7]
+MF3='alta':'trimf',[0.6 0.8 1]
+
+[Rules]
+1 1 1, 2 (1) : 1
+1 1 2, 3 (1) : 1
+1 1 3, 3 (1) : 1
+1 2 1, 1 (1) : 1
+1 2 2, 2 (1) : 1
+1 2 3, 3 (1) : 1
+1 3 1, 1 (1) : 1
+1 3 2, 1 (1) : 1
+1 3 3, 2 (1) : 1
+2 1 1, 2 (1) : 1
+2 1 2, 3 (1) : 1
+2 1 3, 3 (1) : 1
+2 2 1, 2 (1) : 1
+2 2 2, 2 (1) : 1
+2 2 3, 3 (1) : 1
+2 3 1, 1 (1) : 1
+2 3 2, 2 (1) : 1
+2 3 3, 2 (1) : 1
+3 1 1, 3 (1) : 1
+3 1 2, 3 (1) : 1
+3 1 3, 3 (1) : 1
+3 2 1, 2 (1) : 1
+3 2 2, 2 (1) : 1
+3 2 3, 3 (1) : 1
+3 3 1, 1 (1) : 1
+3 3 2, 2 (1) : 1
+3 3 3, 2 (1) : 1
